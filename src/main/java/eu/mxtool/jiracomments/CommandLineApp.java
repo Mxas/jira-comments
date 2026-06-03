@@ -23,6 +23,8 @@ import eu.mxtool.jiracomments.service.BackfillService;
  *   <li>{@code --jira.request-delay-ms=N} — delay between API requests in ms (default {@code 50}).</li>
  *   <li>{@code --jira.start-page=N} — zero-based page number to begin processing from
  *       (default {@code 0}). Useful for resuming an interrupted run.</li>
+ *   <li>{@code --jira.end-page=N} — last page number to process inclusive
+ *       (default {@code 0} = no limit). Use together with {@code --jira.start-page} to process a page range.</li>
  *   <li>{@code --jira.max-successful-processed=N} — stop after N successful comments.</li>
  * </ul>
  *

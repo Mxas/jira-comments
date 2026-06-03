@@ -92,6 +92,17 @@ public class JiraProperties {
     private int startPage = 0;
 
     /**
+     * Last page number to process (inclusive).
+     * Processing stops after this page even if more pages are available.
+     * <ul>
+     *   <li>{@code 0} (default) — no limit, process all pages.</li>
+     *   <li>Any positive value — stop after that page number.</li>
+     * </ul>
+     * Example: {@code --jira.end-page=10}
+     */
+    private int endPage = 0;
+
+    /**
      * Optional cap on the number of successfully commented issues per run.
      * Once this many comments have been posted the run stops — remaining issues
      * are not processed.

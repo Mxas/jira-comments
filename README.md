@@ -148,6 +148,7 @@ All parameters are passed on the command line using `--jira.<name>=<value>`.
 |---|---|---|
 | `--jira.page-size` | `50` | Number of issues fetched per API page (max `100`) |
 | `--jira.start-page` | `0` | Zero-based page number to begin processing from — useful for resuming an interrupted run |
+| `--jira.end-page` | `0` | Last page number to process inclusive (`0` = no limit) — use with `--jira.start-page` to process a specific range |
 | `--jira.request-delay-ms` | `50` | Milliseconds to wait between successive API requests (rate-limit protection) |
 | `--jira.max-retries` | `3` | Maximum retry attempts on transient HTTP `429` / `5xx` errors |
 | `--jira.retry-delay-ms` | `2000` | Base delay (ms) before the first retry; doubles on each subsequent attempt (exponential back-off) |
@@ -189,6 +190,16 @@ java -jar jira-comment-tool.jar \
   --jira.project-key=MYPROJ \
   --jira.issue-keys=ALL \
   --jira.start-page=7
+```
+
+### Process only pages 3–6 (page range)
+
+```bash
+java -jar jira-comment-tool.jar \
+  --jira.project-key=MYPROJ \
+  --jira.issue-keys=ALL \
+  --jira.start-page=3 \
+  --jira.end-page=6
 ```
 
 ### Windows (single line, PowerShell)

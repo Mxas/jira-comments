@@ -139,6 +139,7 @@ public class BackfillService {
         String nextPageToken = null;
         lastPageNum = 0;
         int startPage = properties.getStartPage();
+        int endPage   = properties.getEndPage();
 
         while (true) {
             if (isLimitReached()) break;
@@ -164,6 +165,11 @@ public class BackfillService {
 
             if (page.issues().isEmpty()) {
                 log.warn("Received empty page on page {}; stopping pagination.", lastPageNum);
+                break;
+            }
+
+            if (endPage > 0 && lastPageNum >= endPage) {
+                log.info("Reached end-page limit ({}) — stopping.", endPage);
                 break;
             }
 
@@ -266,6 +272,17 @@ public class BackfillService {
             pw.println("Mode       : " + runMode);
             pw.println("Start time : " + startTime.format(DISPLAY_FMT));
             pw.println("End time   : " + LocalDateTime.now().format(DISPLAY_FMT));
+            pw.println();
+            pw.println("── Run Arguments ─────────────────────────────────────");
+            pw.println("--jira.project-key           : " + properties.getProjectKey());
+            pw.println("--jira.issue-keys            : " + properties.getIssueKeys());
+            pw.println("--jira.page-size             : " + properties.getPageSize());
+            pw.println("--jira.start-page            : " + properties.getStartPage());
+            pw.println("--jira.end-page              : " + (properties.getEndPage() > 0 ? properties.getEndPage() : "no limit"));
+            pw.println("--jira.request-delay-ms      : " + properties.getRequestDelayMs());
+            pw.println("--jira.max-retries           : " + properties.getMaxRetries());
+            pw.println("--jira.retry-delay-ms        : " + properties.getRetryDelayMs());
+            pw.println("--jira.max-successful-processed: " + (properties.getMaxSuccessfulProcessed() > 0 ? properties.getMaxSuccessfulProcessed() : "no limit"));
             pw.println();
             pw.println("── Progress ──────────────────────────────────────────");
             pw.println("Last page processed  : " + (lastPageNum > 0 ? lastPageNum : "N/A"));
