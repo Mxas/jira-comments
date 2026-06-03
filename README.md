@@ -28,6 +28,24 @@ Issues that already have such a comment, or have no development activity at all,
 
 ---
 
+## How it works
+
+### 1 — Source: Jira Development panel
+
+The tool reads data from the **Development panel** visible on every Jira issue (right-hand sidebar). This panel shows all Git activity linked to the issue — branches, commits, pull requests and build pipelines.
+
+![Jira Development panel](docs/images/jira-Development-panel-view.png)
+
+### 2 — Result: Generated comment on the issue
+
+After the tool runs, a **"Git Activity Summary"** comment is automatically posted to the issue. The comment preserves the same information that was visible in the Development panel before the migration.
+
+![Generated comment example](docs/images/jira-generated-comment-example.png)
+
+> The comment footer reads *"Generated automatically from Jira Development panel."* so it is easy to identify after the migration.
+
+---
+
 ## Requirements
 
 | Requirement | Version |
