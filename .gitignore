@@ -6,8 +6,8 @@ build/
 !**/src/test/**/build/
 
 ### Generated output ###
-jira-backfill-*.txt
-jira-comment-tool.jar
+
+
 
 ### STS ###
 .apt_generated
