@@ -84,7 +84,7 @@ class BackfillServiceTest {
 
         verify(jiraClient, times(1)).findIssue("PROJ-1");
         verify(jiraClient, times(1)).addComment("PROJ-1", fakeAdf);
-        verify(jiraClient, never()).searchIssues(anyString(), nullable(String.class), anyInt());
+        verify(jiraClient, never()).searchIssues(anyString(), nullable(String.class), anyInt(), anyInt());
     }
 
     @Test
@@ -101,7 +101,7 @@ class BackfillServiceTest {
         verify(jiraClient, times(1)).findIssue("PROJ-1");
         verify(jiraClient, times(1)).findIssue("PROJ-2");
         verify(jiraClient, times(2)).addComment(anyString(), eq(fakeAdf));
-        verify(jiraClient, never()).searchIssues(anyString(), nullable(String.class), anyInt());
+        verify(jiraClient, never()).searchIssues(anyString(), nullable(String.class), anyInt(), anyInt());
     }
 
     // ── Duplicate detection ────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ class BackfillServiceTest {
     @Test
     void fullRun_skipsIssue_whenGeneratedCommentAlreadyExists() {
         SearchResponse page = new SearchResponse(List.of(ISSUE_1), null);
-        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt())).thenReturn(page);
+        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt(), anyInt())).thenReturn(page);
         when(jiraClient.hasGeneratedComment("PROJ-1")).thenReturn(true);
 
         backfillService.run(List.of("ALL"));
@@ -123,7 +123,7 @@ class BackfillServiceTest {
     @Test
     void fullRun_skipsIssue_whenNoActivityFound() {
         SearchResponse page = new SearchResponse(List.of(ISSUE_1), null);
-        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt())).thenReturn(page);
+        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt(), anyInt())).thenReturn(page);
         when(jiraClient.hasGeneratedComment("PROJ-1")).thenReturn(false);
         when(devActivityService.getActivity("10001")).thenReturn(EMPTY_ACTIVITY);
 
@@ -138,7 +138,7 @@ class BackfillServiceTest {
     @Test
     void fullRun_addsComment_whenActivityPresent() {
         SearchResponse page = new SearchResponse(List.of(ISSUE_1), null);
-        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt())).thenReturn(page);
+        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt(), anyInt())).thenReturn(page);
         when(jiraClient.hasGeneratedComment("PROJ-1")).thenReturn(false);
         when(devActivityService.getActivity("10001")).thenReturn(SOME_ACTIVITY);
         Map<String, Object> fakeAdf = Map.of("type", "doc", "version", 1);
@@ -157,7 +157,7 @@ class BackfillServiceTest {
     @Test
     void fullRun_continuesProcessing_whenOneIssueFails() {
         SearchResponse page = new SearchResponse(List.of(ISSUE_1, ISSUE_2), null);
-        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt())).thenReturn(page);
+        when(jiraClient.searchIssues(anyString(), nullable(String.class), anyInt(), anyInt())).thenReturn(page);
 
         when(jiraClient.hasGeneratedComment("PROJ-1"))
                 .thenThrow(new RuntimeException("Simulated failure"));
@@ -180,12 +180,12 @@ class BackfillServiceTest {
         SearchResponse page1 = new SearchResponse(List.of(ISSUE_1), "page2token");
         SearchResponse page2 = new SearchResponse(List.of(ISSUE_2), null);
         when(properties.getPageSize()).thenReturn(1);
-        when(jiraClient.searchIssues(anyString(), isNull(), anyInt())).thenReturn(page1);
-        when(jiraClient.searchIssues(anyString(), eq("page2token"), anyInt())).thenReturn(page2);
+        when(jiraClient.searchIssues(anyString(), isNull(), anyInt(), anyInt())).thenReturn(page1);
+        when(jiraClient.searchIssues(anyString(), eq("page2token"), anyInt(), anyInt())).thenReturn(page2);
         when(jiraClient.hasGeneratedComment(anyString())).thenReturn(true); // skip both
 
         backfillService.run(List.of("ALL"));
 
-        verify(jiraClient, times(2)).searchIssues(anyString(), nullable(String.class), anyInt());
+        verify(jiraClient, times(2)).searchIssues(anyString(), nullable(String.class), anyInt(), anyInt());
     }
 }

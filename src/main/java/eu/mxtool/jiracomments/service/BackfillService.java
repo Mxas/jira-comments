@@ -135,25 +135,30 @@ public class BackfillService {
     // ── Private helpers ────────────────────────────────────────────────────────
 
     private void runFullBackfill() {
-        String jql = "project = " + properties.getProjectKey() + " ORDER BY created ASC";
-        String nextPageToken = null;
-        lastPageNum = 0;
-        int startPage = properties.getStartPage();
-        int endPage   = properties.getEndPage();
+        String jql      = "project = " + properties.getProjectKey() + " ORDER BY created ASC";
+        int    startPage = properties.getStartPage();
+        int    endPage   = properties.getEndPage();
+        int    pageSize  = properties.getPageSize();
+
+        // Jump directly to startPage by computing the issue offset for the first request.
+        // Subsequent pages use the cursor token returned by Jira.
+        String nextPageToken  = null;
+        int    initialStartAt = startPage * pageSize;
+        lastPageNum = startPage; // pages 1..startPage are skipped via offset, not fetched
+
+        if (startPage > 0) {
+            log.info("Jumping directly to page {} (startAt={})", startPage + 1, initialStartAt);
+        }
 
         while (true) {
             if (isLimitReached()) break;
 
-            SearchResponse page = jiraClient.searchIssues(jql, nextPageToken, properties.getPageSize());
+            SearchResponse page = jiraClient.searchIssues(jql, nextPageToken, initialStartAt, pageSize);
+            initialStartAt = 0; // offset only used for the very first request
             lastPageNum++;
 
             nextPageToken = page.nextPageToken();
 
-            if (lastPageNum <= startPage) {
-                log.info("--- Skipping page {} (before start-page {}) ---", lastPageNum, startPage);
-                if (nextPageToken == null || page.issues().isEmpty()) break;
-                continue;
-            }
 
             log.info("--- Page {} ---", lastPageNum);
 
