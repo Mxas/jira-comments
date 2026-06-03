@@ -1,4 +1,4 @@
-# jira-comments
+# jira-comments - API generated
 
 > **This project was fully designed, implemented, debugged, and documented by AI tools (GitHub Copilot).**
 > No manual code was written — every Java class, Gradle script, test, and this README were produced through AI-assisted pair programming sessions.
