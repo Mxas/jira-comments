@@ -1,0 +1,29 @@
+Jira Backfill Report
+Generated  : 2026-06-03 12:38:39
+Project    : PROJ
+Mode       : FULL BACKFILL (ALL)
+Start time : 2026-06-03 12:38:39
+End time   : 2026-06-03 12:38:39
+
+── Progress ──────────────────────────────────────────
+Last page processed  : 1
+Last ticket processed: PROJ-1
+
+── Summary ───────────────────────────────────────────
+Total processed : 1
+Comments added  : 0
+Skipped         : 1
+Failed          : 0
+
+COMMENTED (0):
+  (none)
+
+SKIPPED (1):
+  PROJ-1
+
+FAILED (0):
+  (none)
+
+ALL PROCESSED (1):
+  PROJ-1
+

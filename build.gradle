@@ -1,0 +1,64 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'eu.mxtool'
+version = '0.0.1'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+// Explicitly declare the main class for the executable JAR
+springBoot {
+	mainClass = 'eu.mxtool.jiracomments.JiraCommentsApplication'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Core Spring Boot (logging, auto-configuration, YAML support)
+	implementation 'org.springframework.boot:spring-boot-starter'
+	// HTTP client (RestTemplate, HttpHeaders, UriUtils) — no embedded server
+	implementation 'org.springframework:spring-web'
+	// Jackson JSON serialisation/deserialisation
+	implementation 'org.springframework.boot:spring-boot-starter-jackson'
+	// Bean Validation — enforces @NotBlank / @NotNull on @ConfigurationProperties
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// Generates IDE/tooling metadata for @ConfigurationProperties
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testCompileOnly 'org.projectlombok:lombok'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// After bootJar is built, copy it to the project root as jira-comment-tool.jar
+bootJar {
+	archiveFileName = 'jira-comments-boot.jar'
+}
+
+tasks.register('copyJarToRoot', Copy) {
+	dependsOn bootJar
+	from(bootJar.archiveFile)
+	into(rootDir)
+	rename { 'jira-comment-tool.jar' }
+	doNotTrackState("copying into the project root which contains Gradle internal files")
+}
+
+build.finalizedBy(copyJarToRoot)
+
