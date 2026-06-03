@@ -58,6 +58,15 @@ public class CommandLineApp implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // Detect single-dash jira args (e.g. -jira.end-page=10) that Spring silently ignores.
+        for (String arg : args) {
+            if (arg.startsWith("-jira.")) {
+                log.warn("⚠️  IGNORED ARGUMENT detected: \"{}\"", arg);
+                log.warn("⚠️  Arguments must start with TWO dashes: \"--{}\"", arg.substring(1));
+                log.warn("⚠️  This argument has NO effect. Fix the command and re-run.");
+            }
+        }
+
         List<String> issueKeys = properties.getIssueKeys();
         boolean fullRun = issueKeys.stream().anyMatch(k -> "ALL".equalsIgnoreCase(k));
 

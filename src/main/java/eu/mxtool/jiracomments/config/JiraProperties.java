@@ -28,12 +28,15 @@ import org.springframework.validation.annotation.Validated;
 public class JiraProperties {
 
     /** Base URL of the Jira Cloud instance, e.g. https://your-org.atlassian.net */
+    @NotBlank(message = "JIRA_BASE_URL environment variable is not set. Example: export JIRA_BASE_URL=https://your-org.atlassian.net")
     private String baseUrl;
 
     /** Jira account e-mail address used for Basic Auth. */
+    @NotBlank(message = "JIRA_USER_EMAIL environment variable is not set. Example: export JIRA_USER_EMAIL=you@example.com")
     private String email;
 
     /** Jira API token (pass via JIRA_API_TOKEN env-var). */
+    @NotBlank(message = "JIRA_API_TOKEN environment variable is not set. Generate one at https://id.atlassian.com/manage-profile/security/api-tokens")
     private String apiToken;
 
     /**

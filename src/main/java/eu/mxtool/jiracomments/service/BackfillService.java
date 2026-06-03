@@ -145,7 +145,7 @@ public class BackfillService {
     // ── Private helpers ────────────────────────────────────────────────────────
 
     private void runFullBackfill() {
-        String jql    = "project = " + properties.getProjectKey() + " ORDER BY created ASC";
+        String jql    = "project = " + properties.getProjectKey() + " ORDER BY key ASC";
         int startPage = Math.max(properties.getStartPage(), 1);
         int endPage   = properties.getEndPage();
         int pageSize  = properties.getPageSize();
@@ -154,14 +154,13 @@ public class BackfillService {
         lastPageNum = 0;
 
         // ── Phase 1: fast-forward to startPage ────────────────────────────────
-        // The new /search/jql endpoint uses cursor-only pagination and ignores startAt,
-        // so we must iterate through preceding pages. We use maxResults=100 and no delay
-        // to get through them as quickly as possible.
+        // IMPORTANT: must use the same pageSize as the processing phase so the
+        // cursor position (and therefore page numbers) are consistent.
         if (startPage > 1) {
             log.info("Fast-forwarding to page {} — fetching {} page(s) without processing...",
                     startPage, startPage - 1);
             while (lastPageNum < startPage - 1) {
-                SearchResponse skip = jiraClient.searchIssues(jql, nextPageToken, 100);
+                SearchResponse skip = jiraClient.searchIssues(jql, nextPageToken, pageSize);
                 lastPageNum++;
                 nextPageToken = skip.nextPageToken();
                 log.debug("  skipped page {}", lastPageNum);
