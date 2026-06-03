@@ -93,6 +93,16 @@ public class BackfillService {
         runMode = fullRun ? "FULL BACKFILL (ALL)"
                          : "TARGETED (" + String.join(", ", issueKeys) + ")";
 
+        // Validate page range early so the user gets a clear error before any API calls.
+        int startPage = Math.max(properties.getStartPage(), 1);
+        int endPage   = properties.getEndPage();
+        if (endPage > 0 && startPage > endPage) {
+            throw new IllegalArgumentException(
+                    "Invalid page range: --jira.start-page=" + startPage +
+                    " is greater than --jira.end-page=" + endPage +
+                    ". start-page must be ≤ end-page (both are 1-based inclusive).");
+        }
+
         int limit = properties.getMaxSuccessfulProcessed();
         if (limit > 0) {
             log.info("Limit: stop after {} successfully commented issue(s).", limit);
@@ -135,30 +145,42 @@ public class BackfillService {
     // ── Private helpers ────────────────────────────────────────────────────────
 
     private void runFullBackfill() {
-        String jql      = "project = " + properties.getProjectKey() + " ORDER BY created ASC";
-        int    startPage = properties.getStartPage();
-        int    endPage   = properties.getEndPage();
-        int    pageSize  = properties.getPageSize();
+        String jql    = "project = " + properties.getProjectKey() + " ORDER BY created ASC";
+        int startPage = Math.max(properties.getStartPage(), 1);
+        int endPage   = properties.getEndPage();
+        int pageSize  = properties.getPageSize();
 
-        // Jump directly to startPage by computing the issue offset for the first request.
-        // Subsequent pages use the cursor token returned by Jira.
-        String nextPageToken  = null;
-        int    initialStartAt = startPage * pageSize;
-        lastPageNum = startPage; // pages 1..startPage are skipped via offset, not fetched
+        String nextPageToken = null;
+        lastPageNum = 0;
 
-        if (startPage > 0) {
-            log.info("Jumping directly to page {} (startAt={})", startPage + 1, initialStartAt);
+        // ── Phase 1: fast-forward to startPage ────────────────────────────────
+        // The new /search/jql endpoint uses cursor-only pagination and ignores startAt,
+        // so we must iterate through preceding pages. We use maxResults=100 and no delay
+        // to get through them as quickly as possible.
+        if (startPage > 1) {
+            log.info("Fast-forwarding to page {} — fetching {} page(s) without processing...",
+                    startPage, startPage - 1);
+            while (lastPageNum < startPage - 1) {
+                SearchResponse skip = jiraClient.searchIssues(jql, nextPageToken, 100);
+                lastPageNum++;
+                nextPageToken = skip.nextPageToken();
+                log.debug("  skipped page {}", lastPageNum);
+                if (nextPageToken == null || skip.issues().isEmpty()) {
+                    log.warn("Reached end of results while fast-forwarding at page {}; nothing to process.", lastPageNum);
+                    return;
+                }
+            }
+            log.info("Fast-forward complete — now at page {}, starting processing.", startPage);
         }
 
+        // ── Phase 2: process pages startPage..endPage ─────────────────────────
         while (true) {
             if (isLimitReached()) break;
 
-            SearchResponse page = jiraClient.searchIssues(jql, nextPageToken, initialStartAt, pageSize);
-            initialStartAt = 0; // offset only used for the very first request
+            SearchResponse page = jiraClient.searchIssues(jql, nextPageToken, pageSize);
             lastPageNum++;
 
             nextPageToken = page.nextPageToken();
-
 
             log.info("--- Page {} ---", lastPageNum);
 
@@ -174,7 +196,7 @@ public class BackfillService {
             }
 
             if (endPage > 0 && lastPageNum >= endPage) {
-                log.info("Reached end-page limit ({}) — stopping.", endPage);
+                log.info("Reached end-page {} — stopping.", endPage);
                 break;
             }
 

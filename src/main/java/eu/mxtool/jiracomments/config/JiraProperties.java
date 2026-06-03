@@ -81,24 +81,23 @@ public class JiraProperties {
     private List<String> issueKeys;
 
     /**
-     * Zero-based page number to start processing from (useful for resuming interrupted runs).
-     * Pages before this number are still fetched (to advance the cursor) but skipped silently.
+     * Page number to start processing from (1-based, inclusive).
      * <ul>
-     *   <li>{@code 0} (default) — start from the very first page.</li>
-     *   <li>Any positive value — skip that many pages before processing begins.</li>
+     *   <li>{@code 1} (default) — start from the very first page.</li>
+     *   <li>{@code 12} — jump directly to page 12, skipping pages 1–11.</li>
      * </ul>
-     * Example: {@code --jira.start-page=3}
+     * Example: {@code --jira.start-page=12}
      */
-    private int startPage = 0;
+    private int startPage = 1;
 
     /**
-     * Last page number to process (inclusive).
+     * Last page number to process (1-based, inclusive).
      * Processing stops after this page even if more pages are available.
      * <ul>
      *   <li>{@code 0} (default) — no limit, process all pages.</li>
-     *   <li>Any positive value — stop after that page number.</li>
+     *   <li>{@code 12} — stop after page 12.</li>
      * </ul>
-     * Example: {@code --jira.end-page=10}
+     * Example: {@code --jira.end-page=12}
      */
     private int endPage = 0;
 

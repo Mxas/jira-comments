@@ -71,14 +71,14 @@ public class JiraClient {
 
     /**
      * Searches for Jira issues matching the given JQL query.
+     * Uses cursor-based pagination — {@code nextPageToken} must be {@code null} on the first call
+     * and set to the value returned by the previous response on subsequent calls.
      *
-     * @param jql             JQL query string (will be URL-encoded)
-     * @param nextPageToken   cursor from the previous page's response, or {@code null} for the first page
-     * @param startAt         zero-based issue offset used to jump directly to a page when
-     *                        {@code nextPageToken} is {@code null}; ignored when a token is present
-     * @param maxResults      page size (Jira maximum is 100)
+     * @param jql           JQL query string (will be URL-encoded)
+     * @param nextPageToken cursor from the previous response, or {@code null} for the first page
+     * @param maxResults    page size (Jira maximum is 100)
      */
-    public SearchResponse searchIssues(String jql, String nextPageToken, int startAt, int maxResults) {
+    public SearchResponse searchIssues(String jql, String nextPageToken, int maxResults) {
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUriString(properties.getBaseUrl() + "/rest/api/3/search/jql")
                 .queryParam("jql", jql)
@@ -86,8 +86,6 @@ public class JiraClient {
                 .queryParam("fields", "id,key,summary");
         if (nextPageToken != null) {
             builder.queryParam("nextPageToken", nextPageToken);
-        } else if (startAt > 0) {
-            builder.queryParam("startAt", startAt);
         }
         URI uri = builder.build().encode().toUri();
         return get(uri, SearchResponse.class);
