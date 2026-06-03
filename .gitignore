@@ -6,7 +6,7 @@ build/
 !**/src/test/**/build/
 
 ### Generated output ###
-
+jira-backfill-*.txt
 
 
 ### STS ###
